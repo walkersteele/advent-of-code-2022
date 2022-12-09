@@ -27,6 +27,7 @@ func problemTwo(fileScanner *bufio.Scanner) {
 				dict[v] = 1
 			} else {
 				unique = false
+				break
 			}
 		}
 		if unique {
