@@ -18,15 +18,14 @@ type Directory struct {
 
 func main() {
 	fileScanner := readFile("input.txt")
-	// problemOne(fileScanner)
-	problemTwo(fileScanner)
-	// problemTwo(readFile("input.txt"))
+	dir := buildDirectoryStructure(fileScanner)
+	printTree(dir, 0)
+	problemOne(dir)
+	problemTwo(dir)
 
 }
 
-func problemTwo(fileScanner *bufio.Scanner) {
-	dir := buildDirectoryStructure(fileScanner)
-	calcDirTotals(&dir, 0)
+func problemTwo(dir Directory) {
 	freeSpace := 70000000 - dir.Size
 	neededSpace := 30000000 - freeSpace
 	smallest := findSmallestDirOverSize(dir, neededSpace, dir.Size)
@@ -98,89 +97,14 @@ func buildDirectoryStructure(fileScanner *bufio.Scanner) Directory {
 			}
 		}
 	}
+	calcDirTotals(&dir, 0)
 	return dir
 }
 
-func problemOne(fileScanner *bufio.Scanner) {
-	dir := Directory{Directories: make(map[string]*Directory)}
-	dir.Directories["/"] = &Directory{
-		Name:        "/",
-		Directories: make(map[string]*Directory),
-		Files:       make(map[string]int),
-	}
-	currentDir := dir.Directories["/"]
-	var args []string
-	for fileScanner.Scan() {
-		line := fileScanner.Text()
-		if isCommand(line) {
-			args = strings.Split(line, " ")
-			if args[1] == "cd" {
-				switch args[2] {
-				case "/": //move back to root dir
-					currentDir = dir.Directories["/"]
-				case "..": //move up 1 dir
-					currentDir = currentDir.ParentDir
-				default: //move to new dir
-					if newDir, ok := currentDir.Directories[args[2]]; ok {
-						//directory exists
-						currentDir = newDir
+func problemOne(dir Directory) {
 
-					} else {
-						newDir := Directory{
-							Name:        args[2],
-							Directories: make(map[string]*Directory),
-							Files:       make(map[string]int),
-							ParentDir:   currentDir,
-						}
-						currentDir = &newDir
-					}
-				}
-			}
-		} else { //always part of a list
-			args = strings.Split(line, " ")
-			if args[0] == "dir" {
-				if _, ok := currentDir.Directories[args[1]]; !ok {
-					newDir := Directory{
-						Name:        args[1],
-						Directories: make(map[string]*Directory),
-						Files:       make(map[string]int),
-						ParentDir:   currentDir,
-					}
-					currentDir.Directories[args[1]] = &newDir
-				}
-			} else { //file and size
-				if _, ok := currentDir.Files[args[1]]; !ok {
-					currentDir.Files[args[1]], _ = strconv.Atoi(args[0])
-					currentDir.Size += currentDir.Files[args[1]]
-				}
-			}
-		}
-	}
-
-	// printTree(dir, 0)
-	// fmt.Println()
-	// totals := make(map[string]int)
-	// _, totals = calcTotals(dir, "", totals)
-	// keys := make([]string, 0, len(totals))
-	// for k := range totals {
-	// 	keys = append(keys, k)
-	// }
-	// sort.SliceStable(keys, func(i, j int) bool {
-	// 	return totals[keys[i]] < totals[keys[j]]
-	// })
-	// total := 0
-	// for _, k := range keys {
-	// 	// fmt.Printf("%s: %d\n", k, totals[k])
-	// 	if totals[k] <= 100000 {
-	// 		total += totals[k]
-	// 	}
-
-	// }
-	// fmt.Println("Total: ", total)
-	calcDirTotals(&dir, 0)
 	total := calcTotal(&dir, 0)
 	fmt.Println("Grand Total: ", total)
-	// printTree(dir, 0)
 
 }
 func calcTotal(dir *Directory, total int) int {
